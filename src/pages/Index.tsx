@@ -11,6 +11,8 @@ const Index = () => {
   const [currentResponseRate, setCurrentResponseRate] = useState<number | null>(null);
   const [currentClosingRate, setCurrentClosingRate] = useState<number | null>(null);
   const [aiResponseRate, setAiResponseRate] = useState<number | null>(null);
+  const [averageTimeToFirstTouch, setAverageTimeToFirstTouch] = useState<number | null>(null);
+  const [expectedDecayRate, setExpectedDecayRate] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   const validateAndCalculate = () => {
@@ -24,6 +26,8 @@ const Index = () => {
     if (currentResponseRate === null) missingFields.push("Current Lead Response Rate");
     if (currentClosingRate === null) missingFields.push("Current Closing Rate");
     if (aiResponseRate === null) missingFields.push("AI's Response Rate");
+    if (averageTimeToFirstTouch === null) missingFields.push("Average Time to First Touch");
+    if (expectedDecayRate === null) missingFields.push("Expected Decay Rate");
 
     if (missingFields.length > 0) {
       toast({
@@ -38,6 +42,10 @@ const Index = () => {
     const responseRateImprovement = aiResponseRate! - currentResponseRate!;
     const conversionRateImprovement = responseRateImprovement * 0.1;
     const newClosingRate = Math.min(currentClosingRate! + conversionRateImprovement, 100);
+    const adjustedConversionRate = Math.max(
+      currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+      0
+    );
 
     console.log("Calculating results:", {
       totalLeads,
@@ -46,6 +54,9 @@ const Index = () => {
       currentClosingRate,
       aiResponseRate,
       newClosingRate,
+      averageTimeToFirstTouch,
+      expectedDecayRate,
+      adjustedConversionRate,
     });
 
     // Show results with animation
@@ -100,6 +111,18 @@ const Index = () => {
               onChange={setAiResponseRate}
               isPercentage={true}
             />
+            <InputField
+              label="Average Time to First Touch (minutes)"
+              value={averageTimeToFirstTouch === null ? "" : averageTimeToFirstTouch}
+              onChange={setAverageTimeToFirstTouch}
+              min={0}
+            />
+            <InputField
+              label="Expected Decay in Conversion Rate per Minute (%)"
+              value={expectedDecayRate === null ? "" : expectedDecayRate}
+              onChange={setExpectedDecayRate}
+              isPercentage={true}
+            />
             <Button 
               onClick={validateAndCalculate}
               className="w-full mt-6"
@@ -122,6 +145,13 @@ const Index = () => {
                   ).toFixed(1)}%`}
                 />
                 <ResultCard
+                  title="Adjusted Conversion Rate (Time-Based)"
+                  value={`${Math.max(
+                    currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+                    0
+                  ).toFixed(1)}%`}
+                />
+                <ResultCard
                   title="Additional Revenue"
                   value={`$${Math.abs(
                     totalLeads! *
@@ -135,17 +165,16 @@ const Index = () => {
                   ).toLocaleString()}`}
                 />
                 <ResultCard
-                  title="Revenue at Risk"
+                  title="Revenue at Risk (Time-Based)"
                   value={`$${Math.abs(
                     totalLeads! *
-                      ((currentClosingRate! / 100) -
-                        Math.min(
-                          currentClosingRate! +
-                            (aiResponseRate! - currentResponseRate!) * 0.1,
-                          100
-                        ) /
-                          100) *
-                      customerValue!
+                    (currentClosingRate! / 100 -
+                      Math.max(
+                        currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+                        0
+                      ) /
+                        100) *
+                    customerValue!
                   ).toLocaleString()}`}
                 />
               </div>
