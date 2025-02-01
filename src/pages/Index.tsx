@@ -37,7 +37,7 @@ const Index = () => {
     // Calculate results
     const responseRateImprovement = aiResponseRate! - currentResponseRate!;
     const conversionRateImprovement = responseRateImprovement * 0.1;
-    const newConversionRate = Math.min(currentClosingRate! + conversionRateImprovement, 100);
+    const newClosingRate = Math.min(currentClosingRate! + conversionRateImprovement, 100);
 
     console.log("Calculating results:", {
       totalLeads,
@@ -45,7 +45,7 @@ const Index = () => {
       currentResponseRate,
       currentClosingRate,
       aiResponseRate,
-      newConversionRate,
+      newClosingRate,
     });
 
     // Show results with animation
@@ -115,7 +115,7 @@ const Index = () => {
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Results</h2>
               <div className="space-y-4">
                 <ResultCard
-                  title="New Conversion Rate"
+                  title="New Closing Rate"
                   value={`${Math.min(
                     currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
                     100
