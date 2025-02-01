@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import InputField from "@/components/Calculator/InputField";
 import ResultCard from "@/components/Calculator/ResultCard";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Info } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
@@ -12,14 +14,12 @@ const Index = () => {
   const [currentClosingRate, setCurrentClosingRate] = useState<number | null>(null);
   const [aiResponseRate, setAiResponseRate] = useState<number | null>(null);
   const [averageTimeToFirstTouch, setAverageTimeToFirstTouch] = useState<number | null>(null);
-  const [expectedDecayRate, setExpectedDecayRate] = useState<number | null>(null);
+  const [leadResponseDecay, setLeadResponseDecay] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   const validateAndCalculate = () => {
-    // Reset results
     setShowResults(false);
 
-    // Validate all inputs are present
     const missingFields = [];
     if (totalLeads === null) missingFields.push("Total Leads per Month");
     if (customerValue === null) missingFields.push("Average Customer Value");
@@ -27,7 +27,7 @@ const Index = () => {
     if (currentClosingRate === null) missingFields.push("Current Closing Rate");
     if (aiResponseRate === null) missingFields.push("AI's Response Rate");
     if (averageTimeToFirstTouch === null) missingFields.push("Average Time to First Touch");
-    if (expectedDecayRate === null) missingFields.push("Expected Decay Rate");
+    if (leadResponseDecay === null) missingFields.push("Lead Response Decay");
 
     if (missingFields.length > 0) {
       toast({
@@ -39,13 +39,18 @@ const Index = () => {
     }
 
     // Calculate results
-    const responseRateImprovement = aiResponseRate! - currentResponseRate!;
-    const conversionRateImprovement = responseRateImprovement * 0.1;
-    const newClosingRate = Math.min(currentClosingRate! + conversionRateImprovement, 100);
     const adjustedConversionRate = Math.max(
-      currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+      currentClosingRate! - (averageTimeToFirstTouch! * leadResponseDecay!),
       0
     );
+
+    const additionalRevenue = totalLeads! * 
+      (adjustedConversionRate - currentClosingRate!) / 100 * 
+      customerValue!;
+
+    const revenueAtRisk = totalLeads! * 
+      (currentClosingRate! - adjustedConversionRate) / 100 * 
+      customerValue!;
 
     console.log("Calculating results:", {
       totalLeads,
@@ -53,13 +58,13 @@ const Index = () => {
       currentResponseRate,
       currentClosingRate,
       aiResponseRate,
-      newClosingRate,
       averageTimeToFirstTouch,
-      expectedDecayRate,
+      leadResponseDecay,
       adjustedConversionRate,
+      additionalRevenue,
+      revenueAtRisk
     });
 
-    // Show results with animation
     setShowResults(true);
   };
 
@@ -86,43 +91,70 @@ const Index = () => {
               value={totalLeads === null ? "" : totalLeads}
               onChange={setTotalLeads}
               min={0}
+              placeholder="Enter number of leads received monthly"
             />
             <InputField
               label="Average Customer Value ($)"
               value={customerValue === null ? "" : customerValue}
               onChange={setCustomerValue}
               min={0}
+              placeholder="Revenue generated per customer"
             />
             <InputField
               label="Current Lead Response Rate (%)"
               value={currentResponseRate === null ? "" : currentResponseRate}
               onChange={setCurrentResponseRate}
               isPercentage={true}
+              placeholder="Percentage of leads currently responded to"
             />
             <InputField
               label="Current Closing Rate (%)"
               value={currentClosingRate === null ? "" : currentClosingRate}
               onChange={setCurrentClosingRate}
               isPercentage={true}
+              placeholder="Percentage of leads that convert to customers"
             />
             <InputField
               label="AI's Response Rate (%)"
               value={aiResponseRate === null ? "" : aiResponseRate}
               onChange={setAiResponseRate}
               isPercentage={true}
+              placeholder="Projected response rate with AI"
             />
             <InputField
-              label="Average Time to First Touch (minutes)"
+              label="Average Time to First Touch (hours)"
               value={averageTimeToFirstTouch === null ? "" : averageTimeToFirstTouch}
               onChange={setAverageTimeToFirstTouch}
               min={0}
+              placeholder="Time taken to initially respond to leads"
             />
-            <InputField
-              label="Expected Decay in Conversion Rate per Minute (%)"
-              value={expectedDecayRate === null ? "" : expectedDecayRate}
-              onChange={setExpectedDecayRate}
-              isPercentage={true}
-            />
+            <div className="flex items-center space-x-2">
+              <InputField
+                label="Lead Response Decay (% per hour)"
+                value={leadResponseDecay === null ? "" : leadResponseDecay}
+                onChange={setLeadResponseDecay}
+                isPercentage={true}
+                placeholder="Expected decay in conversion rate per hour"
+              />
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button variant="ghost" size="icon" className="mt-8">
+                    <Info className="h-4 w-4" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold">Lead Response Decay Rates</h4>
+                    <p className="text-sm">
+                      <strong>Inbound Leads:</strong> Typically 10% per hour of delay in response
+                    </p>
+                    <p className="text-sm">
+                      <strong>Outbound Leads:</strong> Around 5% per hour of delay
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
             <Button 
               onClick={validateAndCalculate}
               className="w-full mt-6"
@@ -138,39 +170,32 @@ const Index = () => {
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Results</h2>
               <div className="space-y-4">
                 <ResultCard
-                  title="New Closing Rate"
-                  value={`${Math.min(
-                    currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
-                    100
-                  ).toFixed(1)}%`}
-                />
-                <ResultCard
-                  title="Adjusted Conversion Rate (Time-Based)"
+                  title="Adjusted Conversion Rate"
                   value={`${Math.max(
-                    currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+                    currentClosingRate! - (averageTimeToFirstTouch! * leadResponseDecay!),
                     0
                   ).toFixed(1)}%`}
                 />
                 <ResultCard
-                  title="Additional Revenue"
+                  title="Additional Revenue from Improved Response"
                   value={`$${Math.abs(
                     totalLeads! *
-                    (Math.min(
-                      currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
-                      100
-                    ) /
+                    ((Math.max(
+                      currentClosingRate! - (averageTimeToFirstTouch! * leadResponseDecay!),
+                      0
+                    ) -
+                      currentClosingRate!) /
                       100) *
-                    customerValue! -
-                    totalLeads! * (currentClosingRate! / 100) * customerValue!
+                    customerValue!
                   ).toLocaleString()}`}
                 />
                 <ResultCard
-                  title="Revenue at Risk (Time-Based)"
+                  title="Revenue at Risk"
                   value={`$${Math.abs(
                     totalLeads! *
                     (currentClosingRate! / 100 -
                       Math.max(
-                        currentClosingRate! - (averageTimeToFirstTouch! * expectedDecayRate!),
+                        currentClosingRate! - (averageTimeToFirstTouch! * leadResponseDecay!),
                         0
                       ) /
                         100) *
