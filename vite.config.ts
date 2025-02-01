@@ -19,5 +19,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "/lead-velocity-calculator/",
+  base: mode === 'development' ? '/' : "/lead-velocity-calculator/",
 }));

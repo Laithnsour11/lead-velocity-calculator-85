@@ -10,13 +10,15 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
+  const basename = import.meta.env.DEV ? '/' : '/lead-velocity-calculator';
+  
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename={basename}>
             <Routes>
               <Route path="/" element={<Index />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
