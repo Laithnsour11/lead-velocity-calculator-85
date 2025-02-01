@@ -43,20 +43,16 @@ const Index = () => {
     }
 
     // Calculate current lead response decay rate
-    // Formula: Decay Rate = (100 - Current Lead Response Rate) / Average Time to First Touch
     const decayRate = (100 - currentResponseRate!) / averageTimeToFirstTouch!;
     
-    // Calculate potential conversions lost (adjusted to include closing rate)
-    // Formula: Total Leads * Decay Rate * Average Time to First Touch * (Current Closing Rate / 100)
-    const potentialConversionsLost = totalLeads! * decayRate * averageTimeToFirstTouch! * (currentClosingRate! / 100);
-    
     // Calculate improved conversion rate with AI
-    // Formula: Current Closing Rate + (Current Lead Response Rate * AI's Response Rate)
     const improvedConversionRate = currentClosingRate! + (currentResponseRate! * aiResponseRate! / 100);
     
     // Calculate additional revenue from AI
-    // Formula: Total Leads * (Improved Conversion Rate - Current Closing Rate) * Average Customer Value
     const additionalRevenue = totalLeads! * ((improvedConversionRate - currentClosingRate!) / 100) * customerValue!;
+    
+    // Calculate potential closed leads lost (new formula)
+    const potentialConversionsLost = Math.abs(additionalRevenue / customerValue!);
 
     console.log("Calculating results:", {
       totalLeads,
