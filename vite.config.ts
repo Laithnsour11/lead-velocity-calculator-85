@@ -19,8 +19,4 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    outDir: 'docs', // GitHub Pages will serve from /docs folder in main branch
-  },
-  base: mode === 'development' ? '/' : "/lead-velocity-calculator/",
 }));
