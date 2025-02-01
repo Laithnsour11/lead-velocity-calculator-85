@@ -15,6 +15,12 @@ const Index = () => {
   const [aiResponseRate, setAiResponseRate] = useState<number | null>(null);
   const [averageTimeToFirstTouch, setAverageTimeToFirstTouch] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [calculatedResults, setCalculatedResults] = useState<{
+    decayRate: number;
+    potentialConversionsLost: number;
+    improvedConversionRate: number;
+    additionalRevenue: number;
+  } | null>(null);
 
   const validateAndCalculate = () => {
     setShowResults(false);
@@ -42,7 +48,7 @@ const Index = () => {
     
     // Calculate potential conversions lost
     // Formula: Total Leads * Decay Rate * Average Time to First Touch
-    const potentialConversionsLost = totalLeads! * (decayRate / 100) * averageTimeToFirstTouch!;
+    const potentialConversionsLost = totalLeads! * decayRate * averageTimeToFirstTouch!;
     
     // Calculate improved conversion rate with AI
     // Formula: Current Closing Rate + (Current Lead Response Rate * AI's Response Rate)
@@ -65,6 +71,12 @@ const Index = () => {
       additionalRevenue
     });
 
+    setCalculatedResults({
+      decayRate,
+      potentialConversionsLost,
+      improvedConversionRate,
+      additionalRevenue
+    });
     setShowResults(true);
   };
 
@@ -138,29 +150,25 @@ const Index = () => {
           </div>
 
           {/* Results Section */}
-          {showResults && (
+          {showResults && calculatedResults && (
             <div className="bg-white p-6 rounded-lg shadow-sm space-y-6 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Results</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 <ResultCard
                   title="Current Lead Response Decay Rate"
-                  value={`${((100 - currentResponseRate!) / averageTimeToFirstTouch!).toFixed(1)}% per hour`}
+                  value={`${calculatedResults.decayRate.toFixed(1)}% per hour`}
                 />
                 <ResultCard
                   title="Potential Conversions Lost"
-                  value={Math.round(totalLeads! * ((100 - currentResponseRate!) / 100) * averageTimeToFirstTouch!).toString()}
+                  value={Math.round(calculatedResults.potentialConversionsLost).toString()}
                 />
                 <ResultCard
                   title="Improved Conversion Rate with AI"
-                  value={`${(currentClosingRate! + (currentResponseRate! * aiResponseRate! / 100)).toFixed(1)}%`}
+                  value={`${calculatedResults.improvedConversionRate.toFixed(1)}%`}
                 />
                 <ResultCard
                   title="Additional Revenue from AI"
-                  value={`$${Math.abs(
-                    totalLeads! * 
-                    ((currentClosingRate! + (currentResponseRate! * aiResponseRate! / 100) - currentClosingRate!) / 100) * 
-                    customerValue!
-                  ).toLocaleString()}`}
+                  value={`$${Math.abs(calculatedResults.additionalRevenue).toLocaleString()}`}
                 />
               </div>
             </div>
