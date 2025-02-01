@@ -46,9 +46,9 @@ const Index = () => {
     // Formula: Decay Rate = (100 - Current Lead Response Rate) / Average Time to First Touch
     const decayRate = (100 - currentResponseRate!) / averageTimeToFirstTouch!;
     
-    // Calculate potential conversions lost
-    // Formula: Total Leads * Decay Rate * Average Time to First Touch
-    const potentialConversionsLost = totalLeads! * decayRate * averageTimeToFirstTouch!;
+    // Calculate potential conversions lost (adjusted to include closing rate)
+    // Formula: Total Leads * Decay Rate * Average Time to First Touch * (Current Closing Rate / 100)
+    const potentialConversionsLost = totalLeads! * decayRate * averageTimeToFirstTouch! * (currentClosingRate! / 100);
     
     // Calculate improved conversion rate with AI
     // Formula: Current Closing Rate + (Current Lead Response Rate * AI's Response Rate)
@@ -159,7 +159,7 @@ const Index = () => {
                   value={`${calculatedResults.decayRate.toFixed(1)}% per hour`}
                 />
                 <ResultCard
-                  title="Potential Conversions Lost"
+                  title="Potential Closes Lost"
                   value={Math.round(calculatedResults.potentialConversionsLost).toString()}
                 />
                 <ResultCard
