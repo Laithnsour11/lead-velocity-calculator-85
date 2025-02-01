@@ -4,8 +4,8 @@ import { Label } from "@/components/ui/label";
 
 interface InputFieldProps {
   label: string;
-  value: number;
-  onChange: (value: number) => void;
+  value: number | string;
+  onChange: (value: number | null) => void;
   placeholder?: string;
   min?: number;
   max?: number;
@@ -18,7 +18,10 @@ const InputField = ({ label, value, onChange, placeholder, min = 0, max = 100 }:
       <Input
         type="number"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          const val = e.target.value;
+          onChange(val === "" ? null : Number(val));
+        }}
         placeholder={placeholder}
         min={min}
         max={max}
