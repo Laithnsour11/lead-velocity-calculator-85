@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import InputField from "@/components/Calculator/InputField";
 import ResultCard from "@/components/Calculator/ResultCard";
-import ResultsChart from "@/components/Calculator/ResultsChart";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Info } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
@@ -36,15 +37,19 @@ const Index = () => {
     }
 
     // Calculate current lead response decay rate
+    // Formula: Decay Rate = (100 - Current Lead Response Rate) / Average Time to First Touch
     const decayRate = (100 - currentResponseRate!) / averageTimeToFirstTouch!;
     
     // Calculate potential conversions lost
+    // Formula: Total Leads * Decay Rate * Average Time to First Touch
     const potentialConversionsLost = totalLeads! * (decayRate / 100) * averageTimeToFirstTouch!;
     
     // Calculate improved conversion rate with AI
+    // Formula: Current Closing Rate + (Current Lead Response Rate * AI's Response Rate)
     const improvedConversionRate = currentClosingRate! + (currentResponseRate! * aiResponseRate! / 100);
     
     // Calculate additional revenue from AI
+    // Formula: Total Leads * (Improved Conversion Rate - Current Closing Rate) * Average Customer Value
     const additionalRevenue = totalLeads! * ((improvedConversionRate - currentClosingRate!) / 100) * customerValue!;
 
     console.log("Calculating results:", {
@@ -158,11 +163,6 @@ const Index = () => {
                   ).toLocaleString()}`}
                 />
               </div>
-              <ResultsChart
-                currentRevenue={totalLeads! * (currentClosingRate! / 100) * customerValue!}
-                improvedRevenue={totalLeads! * ((currentClosingRate! + (currentResponseRate! * aiResponseRate! / 100)) / 100) * customerValue!}
-                revenueAtRisk={totalLeads! * ((100 - currentResponseRate!) / 100) * averageTimeToFirstTouch! * (currentClosingRate! / 100) * customerValue!}
-              />
             </div>
           )}
         </div>
