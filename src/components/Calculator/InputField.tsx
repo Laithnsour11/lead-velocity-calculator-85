@@ -9,9 +9,18 @@ interface InputFieldProps {
   placeholder?: string;
   min?: number;
   max?: number;
+  isPercentage?: boolean;
 }
 
-const InputField = ({ label, value, onChange, placeholder, min = 0, max = 100 }: InputFieldProps) => {
+const InputField = ({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder, 
+  min = 0, 
+  max, 
+  isPercentage = false 
+}: InputFieldProps) => {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -20,11 +29,20 @@ const InputField = ({ label, value, onChange, placeholder, min = 0, max = 100 }:
         value={value}
         onChange={(e) => {
           const val = e.target.value;
-          onChange(val === "" ? null : Number(val));
+          if (val === "") {
+            onChange(null);
+          } else {
+            const numVal = Number(val);
+            if (isPercentage && numVal > 100) {
+              onChange(100);
+            } else {
+              onChange(numVal);
+            }
+          }
         }}
         placeholder={placeholder}
         min={min}
-        max={max}
+        max={isPercentage ? 100 : max}
         className="w-full"
       />
     </div>

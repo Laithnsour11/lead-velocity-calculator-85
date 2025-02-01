@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import InputField from "@/components/Calculator/InputField";
 import ResultCard from "@/components/Calculator/ResultCard";
 
@@ -35,14 +35,9 @@ const Index = () => {
     }
 
     // Calculate results
-    const improvedConversionRate = Math.min(
-      currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
-      100
-    );
-
-    const currentRevenue = totalLeads! * (currentClosingRate! / 100) * customerValue!;
-    const improvedRevenue = totalLeads! * (improvedConversionRate / 100) * customerValue!;
-    const revenueAtRisk = improvedRevenue - currentRevenue;
+    const responseRateImprovement = aiResponseRate! - currentResponseRate!;
+    const conversionRateImprovement = responseRateImprovement * 0.1;
+    const newConversionRate = Math.min(currentClosingRate! + conversionRateImprovement, 100);
 
     console.log("Calculating results:", {
       totalLeads,
@@ -50,10 +45,7 @@ const Index = () => {
       currentResponseRate,
       currentClosingRate,
       aiResponseRate,
-      improvedConversionRate,
-      currentRevenue,
-      improvedRevenue,
-      revenueAtRisk,
+      newConversionRate,
     });
 
     // Show results with animation
@@ -81,36 +73,32 @@ const Index = () => {
             <InputField
               label="Total Leads per Month"
               value={totalLeads === null ? "" : totalLeads}
-              onChange={(value) => setTotalLeads(value || null)}
+              onChange={setTotalLeads}
               min={0}
-              max={100000}
             />
             <InputField
               label="Average Customer Value ($)"
               value={customerValue === null ? "" : customerValue}
-              onChange={(value) => setCustomerValue(value || null)}
+              onChange={setCustomerValue}
               min={0}
             />
             <InputField
               label="Current Lead Response Rate (%)"
               value={currentResponseRate === null ? "" : currentResponseRate}
-              onChange={(value) => setCurrentResponseRate(value || null)}
-              min={0}
-              max={100}
+              onChange={setCurrentResponseRate}
+              isPercentage={true}
             />
             <InputField
               label="Current Closing Rate (%)"
               value={currentClosingRate === null ? "" : currentClosingRate}
-              onChange={(value) => setCurrentClosingRate(value || null)}
-              min={0}
-              max={100}
+              onChange={setCurrentClosingRate}
+              isPercentage={true}
             />
             <InputField
               label="AI's Response Rate (%)"
               value={aiResponseRate === null ? "" : aiResponseRate}
-              onChange={(value) => setAiResponseRate(value || null)}
-              min={0}
-              max={100}
+              onChange={setAiResponseRate}
+              isPercentage={true}
             />
             <Button 
               onClick={validateAndCalculate}
@@ -127,7 +115,7 @@ const Index = () => {
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Results</h2>
               <div className="space-y-4">
                 <ResultCard
-                  title="Improved Conversion Rate"
+                  title="New Conversion Rate"
                   value={`${Math.min(
                     currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
                     100
@@ -135,7 +123,7 @@ const Index = () => {
                 />
                 <ResultCard
                   title="Additional Revenue"
-                  value={`$${(
+                  value={`$${Math.abs(
                     totalLeads! *
                     (Math.min(
                       currentClosingRate! + (aiResponseRate! - currentResponseRate!) * 0.1,
